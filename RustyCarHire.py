@@ -8,7 +8,10 @@ import pypyodbc as py
 from SQLserverconfig import dbconfig
 
 '''
-[RegNo][Make][EngineSize],DateRegistered,[RentalPerDay][Available]'''
+Designed a software to access an external database Cars with a single table via a database connection and a data form
+[RegNo][Make][EngineSize],DateRegistered,[RentalPerDay][Available]
+'''
+
 
 con = py.connect(**dbconfig)
 
@@ -31,6 +34,26 @@ class rustycarhiredb:
 
       def insert(self,RegNo,Make,EngineSize,DateRegistered,RentalPerDay,Available):#worked
          try:
+
+            if len(RegNo) == 0 :
+                 raise Exception('zero-length entry is not allowed')
+
+            elif len(Make)==0:
+                raise Exception('zero-length entry is not allowed')
+
+            elif len(EngineSize)==0:
+                raise Exception('zero-length entry is not allowed')
+
+            elif len(DateRegistered)==0:
+                raise Exception('zero-length entry is not allowed')
+
+            elif len(RentalPerDay)==0:
+                raise Exception('zero-length entry is not allowed')
+
+            elif len(Available)==0:
+                raise Exception('zero-length entry is not allowed')
+
+
             sql = "INSERT INTO Cars (RegNo,Make,EngineSize,DateRegistered,RentalPerDay,Available)VALUES (?,?,?,?,?,?)"
             values = [RegNo,Make,EngineSize,DateRegistered,RentalPerDay,Available]
             self.cursor.execute(sql,values)
@@ -54,14 +77,11 @@ class rustycarhiredb:
       def delete (self,RegNo):#worked
 
         try:
-            if RegNo == '':
-               messagebox.showinfo(title='Car Database',message='RegNo cannot be empty')
 
-            else:
-               delquery= 'DELETE FROM Cars WHERE RegNo=?'
-               self.cursor.execute(delquery,[RegNo])
-               self.con.commit()
-               messagebox.showinfo(title='Car Database',message='car entry has been deleted')
+             delquery= 'DELETE FROM Cars WHERE RegNo=?'
+             self.cursor.execute(delquery,[RegNo])
+             self.con.commit()
+             messagebox.showinfo(title='Car Database',message='car entry has been deleted')
 
         except Exception as e:
                              messagebox.showinfo(title = 'Car Database',message=str(e))
@@ -82,10 +102,18 @@ class rustycarhiredb:
 
          return total_records
 
+      def Display_matching_records(self,Available):
+         sql1 = 'SELECT * FROM Cars WHERE Available = ?'
+         self.cursor.execute(sql1,[Available])
+         rows = self.cursor.fetchall()
+         return display_rows
+
+
 
 
 db = rustycarhiredb()
 #print(db.view())
+
 
 def current_records(current_record_ind):
 
@@ -96,12 +124,13 @@ def current_records(current_record_ind):
     return current_record_ind
 
 
-
-
 def add_btn():#worked
     global current_record_ind
 
     db.insert(RegNo_text.get(), Make_text.get(), Engine_text.get(), Date_text.get(), Rental_text.get(),Avaiable_text.get())
+    #print(type(Avaiable_text.get()))
+    #print(type(Date_text.get()))
+    #print(type(Rental_text.get()))
 
     db.cal_total_records()
     RegNo_entry.delete(0,"end") #clear input after inserting
@@ -111,7 +140,8 @@ def add_btn():#worked
     Rental_entry.delete(0,"end")
     Avaiable_entry.delete(0,"end")
 
-    Last()
+    #Last()
+    Cancel()
 
     con.commit()
 
@@ -130,8 +160,6 @@ def update_records():#worked
     #RegNo_text.insert('end', RegNo_text.get())
 
     con.commit()
-
-
 
 
 def Delete_records():#worked
@@ -177,7 +205,200 @@ def Exit():#worked
         del dd
 
 def search():
-    messagebox.showinfo(title = 'Car Database',message='work in progress')
+    N = (db.cal_total_records())
+
+
+    def run():
+       if combobox1.get()== 'Available'and combobox2.get()== '=' and combobox3.get()== 'Yes' :
+            r = 1
+            for i in range(N):
+
+
+                for j in range(6):
+                    L = db.view()
+                    k = L[i]
+                    print(k)
+                    print(k[-1])
+                    if k[-1]== 0:
+                        r = r - 1
+
+                        break
+
+
+                    label = ttk.Label(table, text=k[j], style="Table.TLabel", borderwidth=1, relief="solid", width=15)
+                    k = L[i-1]
+                    if k[-1] == 0:
+                        label.grid(row= r  , column=j, padx=1, pady=1)
+
+
+                    else:
+
+                        label.grid(row= r , column=j, padx=1, pady=1)
+
+                r = r + 1
+
+
+
+
+
+    def close():
+        dd = db
+        if messagebox.askokcancel("Quit","Do you want to quit"):
+           window.destroy()
+           del dd
+
+
+    # Create the main window
+    window = tk.Tk()
+    window.title("Search Form")
+    window.geometry("800x400")
+    window.resizable(width=False,height=False)
+
+    window.grid_rowconfigure(0, weight=1)
+    window.grid_rowconfigure(1, weight=1)
+    window.grid_rowconfigure(2, weight=1)
+    window.grid_rowconfigure(3, weight=1)
+    window.grid_rowconfigure(4, weight=1)
+    window.grid_rowconfigure(5, weight=1)
+
+    window.grid_columnconfigure(0,weight=1)
+    window.grid_columnconfigure(1,weight=1)
+    window.grid_columnconfigure(2,weight=1)
+    window.grid_columnconfigure(3,weight=1)
+    window.grid_columnconfigure(4,weight=1)
+    window.grid_columnconfigure(5,weight=1)
+    window.grid_columnconfigure(6,weight=1)
+    window.grid_columnconfigure(7,weight=1)
+    window.grid_columnconfigure(8,weight=1)
+
+    # Create labels
+    Field_label = ttk.Label(window,text='Field',background='',font=("TkDefaultFont", 12))
+    Field_label.grid(row=0,column=1,sticky=W,padx=20)
+
+    option1 = ['Available']
+
+    #selected_value1 = tk.StringVar()
+    combobox1 = ttk.Combobox(window,values=option1)
+    combobox1.config(width=15)
+    combobox1.grid(row=1,column=1,sticky=W,padx=20)
+    combobox1.set('Select an option')
+
+    operator_label = ttk.Label(window,text='Operator',background='',font=("TkDefaultFont", 12))
+    operator_label.grid(row=0,column=2,sticky=W,padx=20)
+
+    option2 = ['=']
+
+    #selected_value2 = tk.StringVar()
+    combobox2 = ttk.Combobox(window,values=option2)
+    combobox2.config(width=15)
+    combobox2.grid(row=1,column=2,sticky=W,padx=20)
+    combobox2.set('Select an option')
+
+    Value_label = ttk.Label(window,text='Value',background='',font=("TkDefaultFont", 12))
+    Value_label.grid(row=0,column=3,sticky=W,padx=20)
+
+    option3 = ['Yes']
+
+    #selected_value3 = tk.StringVar()
+    combobox3 = ttk.Combobox(window,values=option3)
+    combobox3.config(width=15)
+    combobox3.grid(row=1,column=3,sticky=W,padx=20)
+    combobox3.set('Select an option')
+
+    # Create buttons
+    Run_btn = Button(window, text="Run",bg='light grey',font=("TkDefaultFont", 10),width=10,command = run)
+    Run_btn.grid(row=0, column=4)
+
+    Close_btn = Button(window, text="Close",bg='light grey',font=("TkDefaultFont", 10),width=10,command=close)
+    Close_btn.grid(row=1, column=4)
+
+    # Create a frame for the table
+    table_frame = ttk.Frame(window)
+    table_frame.grid(row=4, column=1, columnspan=6,sticky=W,padx=20)
+
+    # Create a canvas widget
+    canvas = tk.Canvas(table_frame, background="white")
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+    desired_table_width = 550
+    canvas.config(width=desired_table_width)
+
+    # Create a scrollbar for the vertical direction
+    y_scrollbar = ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=canvas.yview)
+    y_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    # Create a scrollbar for the horizontal direction
+    x_scrollbar = ttk.Scrollbar(window, orient=tk.HORIZONTAL, command=canvas.xview)
+    x_scrollbar.grid(row=5, column=1, columnspan=3 ,sticky="we")
+
+    # Configure the canvas to use the scrollbars
+    canvas.configure(yscrollcommand=y_scrollbar.set, xscrollcommand=x_scrollbar.set)
+
+    # Create a frame within the canvas to hold the table
+    table = ttk.Frame(canvas, style="Table.TFrame", borderwidth=0)
+
+    # Add content to the table
+    for i in range(N+20):
+        for j in range(6):
+
+           if  i ==0 and j==0:
+               label = ttk.Label(table, text=f"VechicleRegNo", style="Table.TLabel", borderwidth=1, relief="solid", width=15)
+               label.grid(row=i, column=j, padx=1, pady=1)
+
+           elif i==0 and j==1:
+               label = ttk.Label(table, text=f"Make", borderwidth=1, relief="solid", width=15)
+               label.grid(row=i, column=j, padx=1, pady=1)
+
+           elif i==0 and j==2:
+               label = ttk.Label(table, text=f"Engine Size", style="Table.TLabel", borderwidth=1, relief="solid", width=15)
+               label.grid(row=i, column=j, padx=1, pady=1)
+
+
+           elif i==0 and j==3:
+               label = ttk.Label(table, text=f"Date Registered", style="Table.TLabel", borderwidth=1, relief="solid", width=15)
+               label.grid(row=i, column=j, padx=1, pady=1)
+
+
+           elif i==0 and j==4:
+               label = ttk.Label(table, text=f"Rental Per Day", style="Table.TLabel", borderwidth=1, relief="solid", width=15)
+               label.grid(row=i, column=j, padx=1, pady=1)
+
+           elif i==0 and j==5:
+               label = ttk.Label(table, text=f"Available", style="Table.TLabel", borderwidth=1, relief="solid", width=15)
+               label.grid(row=i, column=j, padx=1, pady=1)
+
+
+
+           else:
+               #if combobox1.get()== 'Available'and combobox2.get()== '=' and combobox3.get()== '1' :
+
+               label = ttk.Label(table, text=f"", style="Table.TLabel", borderwidth=1, relief="solid", width=15)
+               label.grid(row=i, column=j, padx=1, pady=1)
+
+
+
+    # Add the table to the canvas
+    canvas.create_window((0, 0), window=table, anchor=tk.NW)
+
+    # Update the scrollable region of the canvas
+    def update_scroll_region(event):
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    # Configure the scrollable region of the canvas
+    canvas.bind("<Configure>", update_scroll_region)
+
+    # Update the canvas view when the scrollbars are moved
+    def update_scrollbars(*args):
+       canvas.xview_moveto(x_scrollbar.get()[0])
+       canvas.yview_moveto(y_scrollbar.get()[0])
+
+    x_scrollbar.config(command=canvas.xview)
+    y_scrollbar.config(command=canvas.yview)
+
+    # Start the Tkinter event loop
+    window.mainloop()
+
+
+
 
 #Write code for the controls to move to the first, previous, next and last records.
 
@@ -324,7 +545,7 @@ def Last():
 
 root = Tk()
 today = datetime.date.today().strftime('%B %d,%Y')
-root.title('Vechile Details - Date: '+ today)
+root.title('Vehicle Details - Date: '+ today)
 
 
 #root.configure(background = 'sky blue')
