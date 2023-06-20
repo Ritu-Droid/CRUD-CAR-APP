@@ -1,5 +1,5 @@
-# CRUDE-CAR-APP
-CRUDE App to access rental car database
+# CRUD-CAR-APP
+CRUD App to access rental car database
 
 There are three files:
 
